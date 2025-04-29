@@ -1,0 +1,14 @@
+install-crd: generate
+  kubectl apply -f yaml/crd.yaml
+
+generate:
+  cargo run --bin crdgen > yaml/crd.yaml
+  helm template charts/doc-controller > yaml/deployment.yaml
+
+fmt:
+  cargo +nightly fmt
+
+[private]
+_build features="":
+  just compile {{features}}
+  docker build -t clux/controller:local .

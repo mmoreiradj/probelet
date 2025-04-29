@@ -1,0 +1,45 @@
+[[bin]]
+doc = false
+name = "operator"
+path = "src/main.rs"
+
+[[bin]]
+doc = false
+name = "crdgen"
+path = "src/crdgen.rs"
+
+[dependencies]
+axum = "0.8.3"
+axum-extra = {version = "0.10.1", features = ["typed-routing"]}
+chrono = {version = "0.4.40", features = ["serde"]}
+futures = "0.3.31"
+k8s-openapi = {version = "0.24.0", features = ["latest"]}
+prometheus-client = "0.23.1"
+schemars = {version = "0.8.22", features = ["chrono"]}
+serde = {version = "1.0.219", features = ["derive"]}
+serde_json = "1.0.140"
+serde_yaml = "0.9.25"
+snafu = {version = "0.8.5", features = ["backtrace"]}
+tokio = {version = "1.44.2", features = ["macros", "rt-multi-thread"]}
+tracing = "0.1.41"
+tracing-subscriber = {version = "0.3.19", features = ["json", "env-filter"]}
+
+[dependencies.kube]
+features = ["runtime", "client", "derive"]
+version = "0.99.0"
+
+[dev-dependencies]
+assert-json-diff = "2.0.2"
+http = "1"
+hyper = "1"
+tower-test = "0.4.0"
+
+[lib]
+name = "operator"
+path = "src/lib.rs"
+
+[package]
+default-run = "operator"
+edition = "2024"
+name = "operator"
+version = "0.1.0"

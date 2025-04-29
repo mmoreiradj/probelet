@@ -1,0 +1,73 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+  - id: check-json
+  - id: check-yaml
+    exclude: ^charts/.*/templates/.*$
+  - id: pretty-format-json
+    args: [--autofix]
+    exclude: ^.*/.sqlx/.*$
+  - id: trailing-whitespace
+    exclude: .rs$
+  - id: end-of-file-fixer
+    exclude: .rs$
+- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+  rev: v2.14.0
+  hooks:
+  - id: pretty-format-yaml
+    args: [--autofix]
+    exclude: ^charts/.*/templates/.*$
+  - id: pretty-format-toml
+    args: [--autofix]
+    exclude: ^.*Cargo.lock*
+- repo: https://github.com/doublify/pre-commit-rust
+  rev: v1.0
+  hooks:
+  - id: fmt
+  - id: cargo-check
+    args: [--all-features]
+  - id: clippy
+    args: [--all-features, --tests, --, -D, warnings]
+# - repo: local
+#   hooks:
+#   - id: sqlx
+#     name: Prepare SQLx
+#     language: system
+#     files: ^console/.*
+#     pass_filenames: false
+#     entry: /bin/bash
+#     args: [-c, cd console && cargo sqlx prepare]
+- repo: https://github.com/sqlfluff/sqlfluff
+  rev: 3.3.0
+  hooks:
+  - id: sqlfluff-lint
+    args: [--dialect, postgres]
+  - id: sqlfluff-fix
+    args: [--dialect, postgres]
+# - repo: local
+#   hooks:
+#   - id: install
+#     name: Install Dependencies
+#     entry: pnpm --prefix=console-web install
+#     language: node
+#     files: console-web/.*
+#     pass_filenames: false
+#   - id: format
+#     name: Format Code
+#     entry: pnpm --prefix=console-web run format
+#     language: node
+#     files: console-web/.*
+#     pass_filenames: true
+#   - id: lint
+#     name: Lint Code
+#     entry: pnpm --prefix=console-web run lint
+#     language: node
+#     files: console-web/.*
+#     pass_filenames: true
+#   - id: build
+#     name: Build Code
+#     entry: pnpm --prefix=console-web run build
+#     language: node
+#     files: console-web/.*
+#     pass_filenames: false
