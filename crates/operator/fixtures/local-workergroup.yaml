@@ -1,0 +1,9 @@
+---
+apiVersion: probelet.dev/v0
+kind: WorkerGroup
+metadata:
+  name: local-workergroup
+  namespace: default
+spec:
+  replicas: 1
+  image: busybox:latest

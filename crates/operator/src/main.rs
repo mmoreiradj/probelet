@@ -1,8 +1,12 @@
 use axum::{Json, Router};
 use axum_extra::routing::RouterExt;
 use axum_extra::routing::TypedPath;
-use operator::State;
-use operator::operator;
+use kube::Client;
+use kube::runtime::watcher::Config;
+use operator::AppState;
+use operator::telemetry;
+use operator::telemetry::TelemetryConfig;
+use operator::worker_group;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -19,12 +23,15 @@ async fn health(_: HealthRoute) -> Json<&'static str> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt().with_env_filter("info").init();
+    let tracing_config = TelemetryConfig::from_env()?;
+    telemetry::init(&tracing_config).await;
 
-    let state = State::default();
+    let state = AppState::default();
 
-    info!("Starting operator");
-    let controller = operator::run(state.clone());
+    info!("starting worker group controller");
+    let client = Client::try_default().await?;
+    let watcher_config = Config::default();
+    let worker_group_controller = worker_group::run(client, watcher_config, state.clone());
 
     let app = Router::new().typed_get(health).with_state(state);
 
@@ -34,7 +41,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server =
         axum::serve(listener, app.into_make_service()).with_graceful_shutdown(shutdown_signal());
 
-    tokio::join!(controller, server).1?;
+    tokio::select! {
+        _ = worker_group_controller => {},
+        _ = server => {},
+    }
+
     Ok(())
 }
 
