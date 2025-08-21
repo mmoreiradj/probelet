@@ -9,6 +9,7 @@ use chrono::Utc;
 pub use crd::WorkerGroup;
 use error::Result;
 use futures::StreamExt;
+use k8s_openapi::api::core::v1::Pod;
 use kube::{
     Api, Client, ResourceExt,
     api::ListParams,
@@ -73,12 +74,14 @@ fn error_policy(
 /// Runs the `WorkerGroup` controller
 pub async fn run(client: Client, watcher_config: Config, state: AppState) {
     let worker_groups = Api::<WorkerGroup>::all(client.clone());
+    let pods = Api::<Pod>::all(client.clone());
 
     if let Err(e) = worker_groups.list(&ListParams::default().limit(1)).await {
         tracing::error!("CRD is not queryable; {e:?}. Is the CRD installed?");
         std::process::exit(1);
     }
-    Controller::new(worker_groups, watcher_config)
+    Controller::new(worker_groups, watcher_config.clone())
+        .owns(pods, watcher_config)
         .shutdown_on_signal()
         .run(
             reconcile,
