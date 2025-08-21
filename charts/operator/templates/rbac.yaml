@@ -5,8 +5,14 @@ metadata:
   name: {{ include "operator.fullname" . }}-operator
 rules:
   - apiGroups: ["probelet.dev"]
-    resources: ["*"]
-    verbs: ["*"]
+    resources: ["workergroups", "workergroups/status", "workergroups/finalizers", "probes", "probes/status", "probes/finalizers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete", "update", "get", "list", "watch", "patch"]
+  - apiGroups: ["events.k8s.io"]
+    resources: ["events"]
+    verbs: ["create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

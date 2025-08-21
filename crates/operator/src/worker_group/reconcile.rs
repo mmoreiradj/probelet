@@ -1,9 +1,24 @@
-use std::{sync::Arc, time::Duration};
+use std::{fmt::Display, sync::Arc, time::Duration};
 
-use kube::runtime::controller::Action;
+use kube::{ResourceExt, runtime::controller::Action};
 
 use super::Result;
-use crate::{Context, worker_group::crd::WorkerGroup};
+use crate::{
+    Context,
+    worker_group::{crd::WorkerGroup, worker::Worker},
+};
+
+#[derive(Debug, Clone)]
+pub enum EventReason {
+    /// The worker was created
+    WorkerCreated,
+}
+
+impl Display for EventReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 /// Tasks to be run to reconcile the `WorkerGroup`
 #[derive(Debug, Clone)]
@@ -49,9 +64,21 @@ impl ReconcileWorkerGroupTask {
 }
 
 impl ReconcileWorkerGroupTask {
+    async fn create_worker(&self) -> Result<Action> {
+        let worker = Worker::new(
+            self.worker_group.name_any(),
+            self.worker_group.spec.image.clone(),
+            Arc::new(self.worker_group.clone()),
+        );
+
+        worker.create(self.context.clone()).await?;
+
+        Ok(Action::requeue(Duration::from_secs(5 * 60)))
+    }
+
     pub async fn run(&self) -> Result<Action> {
         match self.task {
-            Tasks::CreateWorker => Ok(Action::requeue(Duration::from_secs(5 * 60))),
+            Tasks::CreateWorker => self.create_worker().await,
         }
     }
 }

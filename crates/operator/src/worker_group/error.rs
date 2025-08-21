@@ -5,6 +5,12 @@ use crate::metrics::MetricLabel;
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub(crate) enum WorkerGroupError {
+    #[snafu(display("Kubernetes error: {message}: {source}"))]
+    Kube {
+        message: String,
+        #[snafu(source(from(kube::Error, Box::new)))]
+        source: Box<kube::Error>,
+    },
     #[snafu(display("Finalizer error: {source}"))]
     Finalizer {
         #[snafu(source(from(kube::runtime::finalizer::Error<WorkerGroupError>, Box::new)))]

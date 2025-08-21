@@ -7,8 +7,7 @@ use tracing_subscriber::{EnvFilter, Registry, prelude::*};
 use validator::Validate;
 use validator_derive::Validate;
 
-#[derive(Debug, Validate)]
-#[derive(Default)]
+#[derive(Debug, Validate, Default)]
 pub struct TelemetryConfig {
     /// Enabled telemetry
     enabled: bool,
@@ -16,7 +15,6 @@ pub struct TelemetryConfig {
     #[validate(url)]
     endpoint: Option<String>,
 }
-
 
 impl TelemetryConfig {
     pub fn from_env() -> Result<Self, Whatever> {

@@ -1,0 +1,44 @@
+---
+source: crates/operator/src/worker_group/worker.rs
+expression: pod_json
+---
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "annotations": {
+      "probelet.dev/operatorVersion": "0.1.0",
+      "probelet.dev/podSpec": "{\"containers\":[{\"args\":[\"sleep infinity\"],\"command\":[\"/bin/sh\",\"-c\"],\"image\":\"test\",\"name\":\"worker\"}],\"restartPolicy\":\"Always\"}"
+    },
+    "deletionGracePeriodSeconds": 30,
+    "labels": {
+      "probelet.dev/workerGroupName": "test",
+      "probelet.dev/workerName": "test"
+    },
+    "name": "test",
+    "ownerReferences": [
+      {
+        "apiVersion": "probelet.dev/v0",
+        "kind": "WorkerGroup",
+        "name": "test",
+        "uid": "test"
+      }
+    ]
+  },
+  "spec": {
+    "containers": [
+      {
+        "args": [
+          "sleep infinity"
+        ],
+        "command": [
+          "/bin/sh",
+          "-c"
+        ],
+        "image": "test",
+        "name": "worker"
+      }
+    ],
+    "restartPolicy": "Always"
+  }
+}

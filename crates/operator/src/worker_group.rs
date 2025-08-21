@@ -1,6 +1,7 @@
 mod crd;
 mod error;
 mod reconcile;
+mod worker;
 
 use std::{sync::Arc, time::Duration};
 

@@ -1,15 +1,15 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+    time::Duration,
+};
 
 use kube::{CustomResource, ResourceExt, runtime::controller::Action};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::Result;
-use crate::{
-    Context,
-    metrics::MetricLabel,
-    worker_group::reconcile::ReconcileWorkerGroupTask,
-};
+use crate::{Context, metrics::MetricLabel, worker_group::reconcile::ReconcileWorkerGroupTask};
 
 /// The `WorkerGroup` is a resource that manages a group of `Worker` instances (Pods).
 /// `Workers` are where the probes are going to be executed.
@@ -100,14 +100,29 @@ impl MetricLabel for WorkerGroup {
 }
 
 impl WorkerGroup {
-    pub async fn reconcile(&self, context: Arc<Context>) -> Result<Action> {
+    pub(crate) async fn reconcile(&self, context: Arc<Context>) -> Result<Action> {
         match ReconcileWorkerGroupTask::from_worker_group(self.clone(), context)? {
             Some(task) => task.run().await,
             None => Ok(Action::requeue(Duration::from_secs(5 * 60))),
         }
     }
 
-    pub async fn cleanup(&self, context: Arc<Context>) -> Result<Action> {
+    pub(crate) async fn cleanup(&self, _context: Arc<Context>) -> Result<Action> {
         Ok(Action::requeue(Duration::from_secs(5 * 60)))
+    }
+
+    pub fn default_annotations(&self) -> BTreeMap<String, String> {
+        let mut annotations = BTreeMap::new();
+        annotations.insert(
+            "probelet.dev/operatorVersion".to_string(),
+            env!("CARGO_PKG_VERSION").to_string(),
+        );
+        annotations
+    }
+
+    pub fn default_labels(&self) -> BTreeMap<String, String> {
+        let mut labels = BTreeMap::new();
+        labels.insert("probelet.dev/workerGroupName".to_string(), self.name_any());
+        labels
     }
 }
